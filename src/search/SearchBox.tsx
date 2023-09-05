@@ -1,8 +1,18 @@
 import { styled } from 'styled-components';
 import { SearchIcon } from '../constants/icon';
 import RecommendList from './RecommendList';
+import { useEffect } from 'react';
+import { httpClient } from '../api/request';
 
 const SearchBox = () => {
+	useEffect(() => {
+		async function abc() {
+			const res = await httpClient.fetch('암');
+			console.log(res);
+		}
+		abc();
+	}, []);
+
 	return (
 		<SearchBoxContainer>
 			<Input>
@@ -40,7 +50,7 @@ const Input = styled.section`
 		width: 450px;
 		height: 45px;
 		color: #4f4f4f;
-		font-size: 20px;
+		font-size: 18px;
 		border: none;
 		box-sizing: border-box;
 
