@@ -1,5 +1,7 @@
 import { styled } from 'styled-components';
-import SearchBox from './search/SearchBox';
+import SearchBox from './searchComponents/SearchBox';
+import { SearchValueProvider } from './context/searchContext';
+import RecommendList from './searchComponents/RecommendList';
 
 function App() {
 	return (
@@ -8,7 +10,10 @@ function App() {
 				<span>국내 모든 임상시험 검색하고</span>
 				<span>온라인으로 참여하기</span>
 			</title>
-			<SearchBox />
+			<SearchValueProvider>
+				<SearchBox />
+				<RecommendList />
+			</SearchValueProvider>
 		</Main>
 	);
 }

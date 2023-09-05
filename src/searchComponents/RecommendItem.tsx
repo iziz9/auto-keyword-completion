@@ -3,13 +3,13 @@ import { SearchIcon } from '../constants/icon';
 
 // props로 내용 가져오기
 
-const RecommendItem = () => {
+const RecommendItem = ({ text }: { text: string }) => {
 	return (
 		<ItemContainer>
 			<div className="icon">
 				<SearchIcon />
 			</div>
-			<div className="content">내용</div>
+			<div className="content">{text}</div>
 		</ItemContainer>
 	);
 };
@@ -21,6 +21,7 @@ const ItemContainer = styled.div`
 	display: flex;
 	gap: 20px;
 	align-items: center;
+	cursor: pointer;
 `;
 
 export default RecommendItem;

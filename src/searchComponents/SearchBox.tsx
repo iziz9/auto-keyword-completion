@@ -1,27 +1,22 @@
 import { styled } from 'styled-components';
 import { SearchIcon } from '../constants/icon';
-import RecommendList from './RecommendList';
-import { useEffect } from 'react';
-import { httpClient } from '../api/request';
+import { useSearchContext } from '../context/searchContext';
 
 const SearchBox = () => {
-	useEffect(() => {
-		async function abc() {
-			const res = await httpClient.fetch('암');
-			console.log(res);
-		}
-		abc();
-	}, []);
+	const { setSearchValueHandler } = useSearchContext();
 
 	return (
 		<SearchBoxContainer>
 			<Input>
-				<input type="text" placeholder="질환명을 입력해주세요." />
-				<div className="icon">
+				<input
+					type="text"
+					placeholder="질환명을 입력해주세요."
+					onChange={(e) => setSearchValueHandler(e.target.value)}
+				/>
+				<button className="icon">
 					<SearchIcon />
-				</div>
+				</button>
 			</Input>
-			<RecommendList />
 		</SearchBoxContainer>
 	);
 };

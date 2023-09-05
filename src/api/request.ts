@@ -8,7 +8,7 @@ const axiosFetch = axios.create({
 });
 
 class HttpClient {
-	fetch(query: string) {
+	get(query: string) {
 		return axiosFetch.get(BASE_URL, {
 			params: {
 				q: query,
