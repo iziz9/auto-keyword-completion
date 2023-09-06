@@ -21,3 +21,21 @@ interface IUseCache {
 	searchValue: string;
 	setRecommendList: React.Dispatch<React.SetStateAction<IResponseItem[] | undefined>>;
 }
+
+interface IRecommendItem {
+	sickNm: string;
+	focus: boolean;
+}
+
+interface IFocusItemContext {
+	focusIndex: number;
+	setFocusIndex: React.Dispatch<React.SetStateAction<number>>;
+}
+
+interface IUseArrowKeysDown {
+	e: React.KeyboardEvent<HTMLInputElement>;
+	searchValue: string;
+	focusIndex: number;
+	setFocusIndex: React.Dispatch<React.SetStateAction<number>>;
+	setSearchValueHandler: (searchValue: string) => void;
+}

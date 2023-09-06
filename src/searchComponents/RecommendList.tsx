@@ -4,48 +4,49 @@ import { useEffect, useState } from 'react';
 import { httpClient } from '../api/request';
 import { useSearchContext } from '../context/searchContext';
 import { CachingData, getCachedData } from '../utils/cacheUtils';
+import { useFocusItemContext } from '../context/focusItemContext';
 
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
-
+	const { focusIndex } = useFocusItemContext();
 	const [recommendList, setRecommendList] = useState<IResponseItem[]>();
 
 	useEffect(() => {
 		!searchValue && setRecommendList([]);
 
-		const cachedData = getCachedData(searchValue);
+		const { data: cachedData } = getCachedData(searchValue);
 
-		console.log(cachedData);
+		const requestSearchResult = async () => {
+			if (searchValue.length < 1) return false;
 
-		// const requestSearchResult = async () => {
-		// 	if (searchValue.length < 1) return false;
+			try {
+				const res = await httpClient.get(searchValue);
+				setRecommendList(res.data);
+				CachingData({ searchValue, recommendList: res.data });
+			} catch (err) {
+				alert(err);
+			} finally {
+				console.info('calling api');
+			}
+		};
 
-		// 	try {
-		// 		const res = await httpClient.get(searchValue);
-		// 		setRecommendList(res.data);
-		// 		console.log(res.data);
-
-		// 		CachingData({ searchValue, recommendList: res.data });
-		// 	} catch (err) {
-		// 		alert(err);
-		// 	} finally {
-		// 		console.info('calling api');
-		// 	}
-		// };
-
-		// requestSearchResult();
+		cachedData ? setRecommendList(cachedData) : requestSearchResult();
 	}, [searchValue]);
 
 	return (
-		<RecommendContainer>
-			<span className="list-info">추천 검색어</span>
-			<div className="list">
-				{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
-				{recommendList?.map((item) => (
-					<RecommendItem key={item.sickCd} sickNm={item.sickNm} sickCd={item.sickCd} />
-				))}
-			</div>
-		</RecommendContainer>
+		<>
+			{searchValue.length >= 1 && (
+				<RecommendContainer>
+					<span className="list-info">추천 검색어</span>
+					<div className="list">
+						{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
+						{recommendList?.map((item, index) => (
+							<RecommendItem key={item.sickCd} sickNm={item.sickNm} focus={focusIndex === index} />
+						))}
+					</div>
+				</RecommendContainer>
+			)}
+		</>
 	);
 };
 

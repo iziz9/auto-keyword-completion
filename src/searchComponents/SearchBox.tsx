@@ -3,16 +3,41 @@ import { SearchIcon } from '../constants/icon';
 import { useSearchContext } from '../context/searchContext';
 import { useDebounce } from '../hooks/useDebounceHook';
 import { useEffect, useState } from 'react';
+import { useFocusItemContext } from '../context/focusItemContext';
+import { getCachedData } from '../utils/cacheUtils';
 
 const SearchBox = () => {
-	const { setSearchValueHandler } = useSearchContext();
+	const { searchValue, setSearchValueHandler } = useSearchContext();
+	const { focusIndex, setFocusIndex } = useFocusItemContext();
 	const [tempQuery, setTempQuery] = useState<string>('');
+	const { data } = getCachedData(searchValue);
 
 	const completeQuery = useDebounce(tempQuery);
 
 	useEffect(() => {
 		setSearchValueHandler(completeQuery);
 	}, [completeQuery]);
+
+	useEffect(() => {
+		console.log(focusIndex);
+	}, [focusIndex]);
+
+	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		switch (e.key) {
+			case 'ArrowDown':
+				if (focusIndex === data.length - 1) return setFocusIndex(0);
+				setFocusIndex((prev: number) => prev + 1);
+				break;
+			case 'ArrowUp':
+				if (focusIndex === 0) return setFocusIndex(0);
+				setFocusIndex((prev: number) => prev - 1);
+				break;
+			case 'Escape':
+				setFocusIndex(-1);
+				setSearchValueHandler('');
+				break;
+		}
+	};
 
 	return (
 		<SearchBoxContainer>
@@ -21,6 +46,7 @@ const SearchBox = () => {
 					type="text"
 					placeholder="질환명을 입력해주세요."
 					onChange={(e) => setTempQuery(e.target.value)}
+					onKeyDown={(e) => keyDownHandler(e)}
 				/>
 				<button className="icon">
 					<SearchIcon />

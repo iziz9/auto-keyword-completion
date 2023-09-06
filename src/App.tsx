@@ -2,6 +2,7 @@ import { styled } from 'styled-components';
 import SearchBox from './searchComponents/SearchBox';
 import { SearchValueProvider } from './context/searchContext';
 import RecommendList from './searchComponents/RecommendList';
+import { ChangeFocusItemProvider } from './context/focusItemContext';
 
 function App() {
 	return (
@@ -11,8 +12,10 @@ function App() {
 				<span>온라인으로 참여하기</span>
 			</title>
 			<SearchValueProvider>
-				<SearchBox />
-				<RecommendList />
+				<ChangeFocusItemProvider>
+					<SearchBox />
+					<RecommendList />
+				</ChangeFocusItemProvider>
 			</SearchValueProvider>
 		</Main>
 	);
@@ -21,6 +24,7 @@ function App() {
 const Main = styled.main`
 	position: relative;
 	width: 834px;
+	min-height: 400px;
 	margin: 0 auto;
 	background-color: #cae9ff;
 	border-radius: 42px;
