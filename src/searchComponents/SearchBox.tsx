@@ -18,10 +18,6 @@ const SearchBox = () => {
 		setSearchValueHandler(completeQuery);
 	}, [completeQuery]);
 
-	useEffect(() => {
-		console.log(focusIndex);
-	}, [focusIndex]);
-
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		switch (e.key) {
 			case 'ArrowDown':

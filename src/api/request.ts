@@ -1,9 +1,10 @@
 import axios from 'axios';
 
+// const BASE_URL = import.meta.env.VITE_BASE_URL;
 const BASE_URL = 'http://localhost:4000/sick';
 
 const axiosFetch = axios.create({
-	baseURL: BASE_URL,
+	baseURL: import.meta.env.VITE_BASE_URL,
 	timeout: 5000,
 });
 
