@@ -3,6 +3,7 @@ import RecommendItem from './RecommendItem';
 import { useEffect, useState } from 'react';
 import { httpClient } from '../api/request';
 import { useSearchContext } from '../context/searchContext';
+import { CachingData, getCachedData } from '../utils/cacheUtils';
 
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
@@ -12,14 +13,27 @@ const RecommendList = () => {
 	useEffect(() => {
 		!searchValue && setRecommendList([]);
 
-		const requestSearchResult = async () => {
-			if (searchValue.length < 1) return false;
+		const cachedData = getCachedData(searchValue);
 
-			const res = await httpClient.get(searchValue);
-			setRecommendList(res.data);
-			console.info('calling api');
-		};
-		requestSearchResult();
+		console.log(cachedData);
+
+		// const requestSearchResult = async () => {
+		// 	if (searchValue.length < 1) return false;
+
+		// 	try {
+		// 		const res = await httpClient.get(searchValue);
+		// 		setRecommendList(res.data);
+		// 		console.log(res.data);
+
+		// 		CachingData({ searchValue, recommendList: res.data });
+		// 	} catch (err) {
+		// 		alert(err);
+		// 	} finally {
+		// 		console.info('calling api');
+		// 	}
+		// };
+
+		// requestSearchResult();
 	}, [searchValue]);
 
 	return (

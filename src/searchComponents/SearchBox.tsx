@@ -17,7 +17,11 @@ const SearchBox = () => {
 	return (
 		<SearchBoxContainer>
 			<Input>
-				<input type="text" placeholder="질환명을 입력해주세요." onChange={(e) => setTempQuery(e.target.value)} />
+				<input
+					type="text"
+					placeholder="질환명을 입력해주세요."
+					onChange={(e) => setTempQuery(e.target.value)}
+				/>
 				<button className="icon">
 					<SearchIcon />
 				</button>
