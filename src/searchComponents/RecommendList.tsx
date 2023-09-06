@@ -10,28 +10,25 @@ const RecommendList = () => {
 	const [recommendList, setRecommendList] = useState<IResponseItem[]>();
 
 	useEffect(() => {
+		!searchValue && setRecommendList([]);
+
 		const requestSearchResult = async () => {
 			if (searchValue.length < 1) return false;
 
 			const res = await httpClient.get(searchValue);
-			console.log(res);
 			setRecommendList(res.data);
 			console.info('calling api');
 		};
 		requestSearchResult();
 	}, [searchValue]);
 
-	useEffect(() => {
-		console.log(recommendList);
-	}, [recommendList]);
-
 	return (
 		<RecommendContainer>
 			<span className="list-info">추천 검색어</span>
 			<div className="list">
-				{!recommendList && <span>검색어 없음</span>}
+				{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
 				{recommendList?.map((item) => (
-					<RecommendItem key={item.sickCd} text={item.sickNm} />
+					<RecommendItem key={item.sickCd} sickNm={item.sickNm} sickCd={item.sickCd} />
 				))}
 			</div>
 		</RecommendContainer>

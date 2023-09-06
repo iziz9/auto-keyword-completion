@@ -1,18 +1,23 @@
 import { styled } from 'styled-components';
 import { SearchIcon } from '../constants/icon';
 import { useSearchContext } from '../context/searchContext';
+import { useDebounce } from '../hooks/useDebounceHook';
+import { useEffect, useState } from 'react';
 
 const SearchBox = () => {
 	const { setSearchValueHandler } = useSearchContext();
+	const [tempQuery, setTempQuery] = useState<string>('');
+
+	const completeQuery = useDebounce(tempQuery);
+
+	useEffect(() => {
+		setSearchValueHandler(completeQuery);
+	}, [completeQuery]);
 
 	return (
 		<SearchBoxContainer>
 			<Input>
-				<input
-					type="text"
-					placeholder="질환명을 입력해주세요."
-					onChange={(e) => setSearchValueHandler(e.target.value)}
-				/>
+				<input type="text" placeholder="질환명을 입력해주세요." onChange={(e) => setTempQuery(e.target.value)} />
 				<button className="icon">
 					<SearchIcon />
 				</button>
