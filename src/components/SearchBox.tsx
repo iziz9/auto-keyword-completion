@@ -4,21 +4,21 @@ import { useSearchContext } from '../context/searchContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useEffect, useState } from 'react';
 import { useFocusItemContext } from '../context/focusItemContext';
-import { useRecommend } from '../hooks/useRecommend';
+import { useRecommendContext } from '../context/recommendContext';
 
 const SearchBox = () => {
 	const { setSearchValueHandler } = useSearchContext();
 	const { focusIndex, setFocusIndex } = useFocusItemContext();
 	const [tempQuery, setTempQuery] = useState<string>('');
 	const completeQuery = useDebounce(tempQuery);
-	const { recommendList } = useRecommend();
+	const { recommendList } = useRecommendContext();
 
 	useEffect(() => {
 		setSearchValueHandler(completeQuery);
 	}, [completeQuery]);
 
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (!recommendList.length) return;
+		if (!recommendList) return;
 
 		switch (e.key) {
 			case 'ArrowDown':

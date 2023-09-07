@@ -3,6 +3,7 @@ import SearchBox from './components/SearchBox';
 import { SearchValueProvider } from './context/searchContext';
 import RecommendList from './components/RecommendList';
 import { ChangeFocusItemProvider } from './context/focusItemContext';
+import { RecommendProvider } from './context/recommendContext';
 
 function App() {
 	return (
@@ -11,12 +12,14 @@ function App() {
 				<span>국내 모든 임상시험 검색하고</span>
 				<span>온라인으로 참여하기</span>
 			</title>
-			<SearchValueProvider>
-				<ChangeFocusItemProvider>
-					<SearchBox />
-					<RecommendList />
-				</ChangeFocusItemProvider>
-			</SearchValueProvider>
+			<RecommendProvider>
+				<SearchValueProvider>
+					<ChangeFocusItemProvider>
+						<SearchBox />
+						<RecommendList />
+					</ChangeFocusItemProvider>
+				</SearchValueProvider>
+			</RecommendProvider>
 		</Main>
 	);
 }

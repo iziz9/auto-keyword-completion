@@ -2,16 +2,15 @@ import { styled } from 'styled-components';
 import RecommendItem from './RecommendItem';
 import { useSearchContext } from '../context/searchContext';
 import { useFocusItemContext } from '../context/focusItemContext';
-// import { useSearchRequest } from '../hooks/useSearchRequest';
 import { useEffect } from 'react';
 import { CachingData, getCachedData } from '../utils/cacheUtils';
 import { httpClient } from '../api/request';
-import { useRecommend } from '../hooks/useRecommend';
+import { useRecommendContext } from '../context/recommendContext';
 
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
 	const { focusIndex } = useFocusItemContext();
-	const { recommendList, setRecommendList } = useRecommend();
+	const { recommendList, setRecommendList } = useRecommendContext();
 
 	useEffect(() => {
 		if (!searchValue) return setRecommendList([]);
@@ -41,7 +40,7 @@ const RecommendList = () => {
 					<span className="list-info">추천 검색어</span>
 					<div className="list">
 						{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
-						{recommendList?.map((item, index) => (
+						{recommendList.map((item: IResponseItem, index: number) => (
 							<RecommendItem key={item.sickCd} sickNm={item.sickNm} focus={focusIndex === index} />
 						))}
 					</div>

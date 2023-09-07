@@ -34,10 +34,10 @@ $ npm run dev
 │   └── icon.tsx
 ├── context/
 │   ├── focusItemContext.tsx
+│   ├── recommendContext.tsx
 │   └── seawrchContext.tsx
 ├── hooks/
-│   ├── useDebounce.tsx
-│   └── useRecommend.tsx
+│   └── useDebounce.tsx
 ├── utils/
 │   └── cacheUtils.ts
 ├── app.tsx
@@ -57,6 +57,7 @@ $ npm run dev
 
 import { SearchValueProvider } from './context/searchContext';
 import { ChangeFocusItemProvider } from './context/focusItemContext';
+import { RecommendProvider } from './context/recommendContext';
 
 function App() {
 	return (
@@ -65,19 +66,23 @@ function App() {
 				<span>국내 모든 임상시험 검색하고</span>
 				<span>온라인으로 참여하기</span>
 			</title>
-			<SearchValueProvider>
-				<ChangeFocusItemProvider>
-					<SearchBox />
-					<RecommendList />
-				</ChangeFocusItemProvider>
-			</SearchValueProvider>
+			<RecommendProvider>
+				<SearchValueProvider>
+					<ChangeFocusItemProvider>
+						<SearchBox />
+						<RecommendList />
+					</ChangeFocusItemProvider>
+				</SearchValueProvider>
+			</RecommendProvider>
 		</Main>
 	);
 }
 ```
 - 관심사 분리 및 불필요한 렌더링을 줄이기 위해 <검색어 입력 / 추천검색어 리스트> `App.tsx`에서 두가지 기능으로 컴포넌트를 분리했습니다.
 - 각 컴포넌트가 수행하는 역할이 달라 상위 컴포넌트에서 상태를 관리하고 props를 내리게 되면 코드 가독성이 떨어질 것으로 생각해 ContextAPI를 활용했습니다.
-- input에 입력한 검색어를 관리할 `SearchContext`, 키보드로 추천검색어 포커싱을 위해 index상태를 관리할 `focusItemContext` 두가지 context를 두 컴포넌트에서 사용할 수 있도록 했습니다.
+- input에 입력한 검색어를 관리할 `SearchContext`, 
+키보드로 추천검색어 포커싱을 위해 index상태를 관리할 `focusItemContext`, 
+검색 결과를 관리할 `recommendContext` 세가지 context를 두 컴포넌트에서 사용할 수 있도록 했습니다.
 
 
 ### 📌 API 호출별 로컬 캐싱 구현
@@ -145,19 +150,27 @@ export const useDebounce = (tempQuery: string) => {
 2. 캐싱 데이터 활용
 
 ```js
-// 전역으로 응답 데이터를 활용하기 위한 커스텀 훅
-export const useRecommend = () => {
+// 전역으로 응답 데이터를 활용하기 위한 context
+export const useRecommendContext: any = () => useContext(recommendContext);
+
+export const RecommendProvider = ({ children }: { children: ReactNode }) => {
 	const [recommendList, setRecommendList] = useState<IResponseItem[]>([]);
 
-	return { recommendList, setRecommendList };
+	return (
+		<recommendContext.Provider value={{ recommendList, setRecommendList }}>
+			{children}
+		</recommendContext.Provider>
+	);
 };
+
 ```
 
 ```js
 // 추천검색어를 표시할 컴포넌트
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
-	const { recommendList, setRecommendList } = useRecommend();
+	const { focusIndex } = useFocusItemContext();
+	const { recommendList, setRecommendList } = useRecommendContext();
 
 	useEffect(() => {
 		if (!searchValue) return setRecommendList([]);
@@ -179,13 +192,19 @@ const RecommendList = () => {
 
 		cachedData ? setRecommendList(cachedData) : requestSearchResult();
 	}, [searchValue]);
+	.
+	.
+	return(...)
 }
 ```
 ```js
-// 
+// input 컴포넌트
 const SearchBox = () => {
+	const { setSearchValueHandler } = useSearchContext();
 	const { focusIndex, setFocusIndex } = useFocusItemContext();
-	const { recommendList } = useRecommend();
+	const [tempQuery, setTempQuery] = useState<string>('');
+	const completeQuery = useDebounce(tempQuery);
+	const { recommendList } = useRecommendContext();
 
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (!recommendList.length) return;
@@ -207,7 +226,8 @@ const SearchBox = () => {
   }
 ```
 - 입력된 값으로 캐싱된 데이터를 확인하고, 없거나 삭제되었을 경우 api를 호출하기 떄문에 불필요한 api호출을 줄일 수 있습니다.
-- 키보드로 추천검색어 이동하는 기능을 위해 (input 요소가 있는) `SearchBox` 컴포넌트에서도 api응답값을 사용해야 하기 때문에 전역에서 사용할 수 있는 `useRecommend` 커스텀 훅을 통해 상태를 지정하고 불러옵니다.
+- 키보드로 추천검색어 이동하는 기능을 위해 (input 요소가 있는) `SearchBox` 컴포넌트에서도 api응답값을 사용하게 됩니다.
+- 응답값 사용 시 api를 다시 호출하지 않기 위해 ContextAPI를 활용해 전역에서 데이터를 관리했습니다.
 
 
 ### 📌 키보드로 추천검색어 이동
@@ -262,6 +282,27 @@ const SearchBox = () => {
 
 ## 기타
 
-![type선언](image-1.png)
+```js
+// vite.env.d.ts
+
+/// <reference types="vite/client" />
+
+interface IResponseItem {
+	sickCd: string;
+	sickNm: string;
+}
+
+interface ISearchContext {
+	searchValue?: string;
+	setSearchValueHandler?: (searchValue: string) => void;
+}
+
+interface ICachingData {
+	searchValue: string;
+	recommendList: {
+		data: IResponseItem[];
+	};
+}
+```
 
 - `vite-env.d.ts` 파일에서 타입을 선언해 전역에서 사용할 수 있도록 하고, import 코드로 컴포넌트 구현부를 확인하기 어려워지는 것을 방지합니다.
