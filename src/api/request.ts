@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-// const BASE_URL = import.meta.env.VITE_BASE_URL;
-const BASE_URL = 'http://localhost:4000/sick';
+const BASE_URL = 'https://chill-jasper-healer.glitch.me/sick';
 
 const axiosFetch = axios.create({
-	baseURL: import.meta.env.VITE_BASE_URL,
+	baseURL: BASE_URL,
 	timeout: 5000,
+	withCredentials: true,
 });
 
 class HttpClient {

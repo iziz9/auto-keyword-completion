@@ -39,3 +39,8 @@ interface IUseArrowKeysDown {
 	setFocusIndex: React.Dispatch<React.SetStateAction<number>>;
 	setSearchValueHandler: (searchValue: string) => void;
 }
+
+interface IUseSearchRequest {
+	recommendList: IResponseItem[];
+	setRecommendList: React.Dispatch<React.SetStateAction<IResponseItem[]>>;
+}

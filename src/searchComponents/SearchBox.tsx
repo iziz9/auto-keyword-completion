@@ -4,24 +4,25 @@ import { useSearchContext } from '../context/searchContext';
 import { useDebounce } from '../hooks/useDebounceHook';
 import { useEffect, useState } from 'react';
 import { useFocusItemContext } from '../context/focusItemContext';
-import { getCachedData } from '../utils/cacheUtils';
+import { useSearchRequest } from '../hooks/useSearchRequest';
 
 const SearchBox = () => {
-	const { searchValue, setSearchValueHandler } = useSearchContext();
+	const { setSearchValueHandler } = useSearchContext();
 	const { focusIndex, setFocusIndex } = useFocusItemContext();
 	const [tempQuery, setTempQuery] = useState<string>('');
-	const { data } = getCachedData(searchValue);
-
 	const completeQuery = useDebounce(tempQuery);
+	const { recommendList } = useSearchRequest();
 
 	useEffect(() => {
 		setSearchValueHandler(completeQuery);
 	}, [completeQuery]);
 
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (!recommendList.length) return;
+
 		switch (e.key) {
 			case 'ArrowDown':
-				if (focusIndex === data.length - 1) return setFocusIndex(0);
+				if (focusIndex === recommendList.length - 1) return setFocusIndex(0);
 				setFocusIndex((prev: number) => prev + 1);
 				break;
 			case 'ArrowUp':
@@ -32,7 +33,15 @@ const SearchBox = () => {
 				setFocusIndex(-1);
 				setSearchValueHandler('');
 				break;
+			case 'Enter':
+				setFocusIndex(0);
+				setTempQuery(recommendList[focusIndex].sickNm);
 		}
+	};
+
+	const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setTempQuery(e.target.value);
+		setFocusIndex(-1);
 	};
 
 	return (
@@ -41,7 +50,10 @@ const SearchBox = () => {
 				<input
 					type="text"
 					placeholder="질환명을 입력해주세요."
-					onChange={(e) => setTempQuery(e.target.value)}
+					value={tempQuery}
+					onChange={(e) => {
+						inputChangeHandler(e);
+					}}
 					onKeyDown={(e) => keyDownHandler(e)}
 				/>
 				<button className="icon">
