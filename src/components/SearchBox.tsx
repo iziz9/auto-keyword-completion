@@ -1,17 +1,17 @@
 import { styled } from 'styled-components';
 import { SearchIcon } from '../constants/icon';
 import { useSearchContext } from '../context/searchContext';
-import { useDebounce } from '../hooks/useDebounceHook';
+import { useDebounce } from '../hooks/useDebounce';
 import { useEffect, useState } from 'react';
 import { useFocusItemContext } from '../context/focusItemContext';
-import { useSearchRequest } from '../hooks/useSearchRequest';
+import { useRecommend } from '../hooks/useRecommend';
 
 const SearchBox = () => {
 	const { setSearchValueHandler } = useSearchContext();
 	const { focusIndex, setFocusIndex } = useFocusItemContext();
 	const [tempQuery, setTempQuery] = useState<string>('');
 	const completeQuery = useDebounce(tempQuery);
-	const { recommendList } = useSearchRequest();
+	const { recommendList } = useRecommend();
 
 	useEffect(() => {
 		setSearchValueHandler(completeQuery);

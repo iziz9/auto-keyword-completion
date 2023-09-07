@@ -1,7 +1,7 @@
 import { styled } from 'styled-components';
-import SearchBox from './searchComponents/SearchBox';
+import SearchBox from './components/SearchBox';
 import { SearchValueProvider } from './context/searchContext';
-import RecommendList from './searchComponents/RecommendList';
+import RecommendList from './components/RecommendList';
 import { ChangeFocusItemProvider } from './context/focusItemContext';
 
 function App() {

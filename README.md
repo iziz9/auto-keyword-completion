@@ -1,12 +1,17 @@
 # 3주차 개인과제
+프리온보딩 3주차에 진행한 개인과제입니다.
+기간 : 2023.09.05. ~ 2023.09.08
+
 ## 배포 링크
 
-[배포 링크]()
+[✨ 배포 링크](https://auto-keyword-completion.netlify.app/)
 
 ## 설치 및 실행방법
 
 ```js
 $ git clone https://github.com/iziz9/auto-keyword-completion
+
+$ cd auto-keyword-completion
 
 $ npm install
 
@@ -15,9 +20,67 @@ $ npm run dev
 
 ---
 
-## 설명
+## 프로젝트 구조
 
-### API 호출별 로컬 캐싱 구현
+```js
+📂 src/
+├── api/
+│   └── request.ts
+├── components/
+│   ├── RecommendItem.tsx
+│   ├── RecommendList.tsx
+│   └── SearchBox.tsx
+├── constants/
+│   └── icon.tsx
+├── context/
+│   ├── focusItemContext.tsx
+│   └── seawrchContext.tsx
+├── hooks/
+│   ├── useDebounce.tsx
+│   └── useRecommend.tsx
+├── utils/
+│   └── cacheUtils.ts
+├── app.tsx
+├── globalStyles.ts
+├── main.tsx
+└── vite-env.d.ts 
+```
+
+---
+
+## 프로젝트 설명
+
+### 📌 상태관리
+
+```js
+// App.tsx
+
+import { SearchValueProvider } from './context/searchContext';
+import { ChangeFocusItemProvider } from './context/focusItemContext';
+
+function App() {
+	return (
+		<Main>
+			<title className="title">
+				<span>국내 모든 임상시험 검색하고</span>
+				<span>온라인으로 참여하기</span>
+			</title>
+			<SearchValueProvider>
+				<ChangeFocusItemProvider>
+					<SearchBox />
+					<RecommendList />
+				</ChangeFocusItemProvider>
+			</SearchValueProvider>
+		</Main>
+	);
+}
+```
+- 관심사 분리 및 불필요한 렌더링을 줄이기 위해 <검색어 입력 / 추천검색어 리스트> `App.tsx`에서 두가지 기능으로 컴포넌트를 분리했습니다.
+- 각 컴포넌트가 수행하는 역할이 달라 상위 컴포넌트에서 상태를 관리하고 props를 내리게 되면 코드 가독성이 떨어질 것으로 생각해 ContextAPI를 활용했습니다.
+- input에 입력한 검색어를 관리할 `SearchContext`, 키보드로 추천검색어 포커싱을 위해 index상태를 관리할 `focusItemContext` 두가지 context를 두 컴포넌트에서 사용할 수 있도록 했습니다.
+
+
+### 📌 API 호출별 로컬 캐싱 구현
 
 ```js
 // cacheUtils.ts
@@ -50,21 +113,54 @@ export const getCachedData = (searchValue: string) => {
 	return checkIsCacheExpired(searchValue) ? false : parsingStorageItem(searchValue);
 };
 ```
-- 로컬스토리지를 이용해 캐싱 합니다.
-- 로컬스토리지는 자동 expire 설정이 불가하기 때문에 검색어 캐싱 시 expire time을 `Date.now()` 메서드를 이용해 직접 넣어주고, 이후 같은 검색어를 재 입력 시 현재시간과 비교해 만료되었을 경우 캐싱데이터를 삭제합니다.
+- 로컬스토리지를 이용해 캐싱합니다.
+  (상태로 저장하는 방법도 고려했으나, 값을 사용할 때 리렌더링되고 다른 탭에서 페이지를 열 경우 초기화된다는 단점이 있어 배제했습니다.)
+- 검색어 캐싱 시 expire time을 `Date.now()` 메서드를 이용해 직접 넣어주고, 이후 같은 검색어를 재 입력 시 현재시간과 비교해 만료되었을 경우 캐싱데이터를 삭제합니다.
 - 추천검색어가 없을 때에도 캐싱해 이후 같은 검색어 입력 시 불필요하게 api요청이 가지 않도록 구현했습니다.
 
 
-### API 호출 횟수를 줄이는 전략
+### 📌 API 호출 횟수를 줄이는 전략
 
+1. debounce 사용
 ```js
-// 캐싱데이터를 불러오는 커스텀 훅
-export const useSearchRequest = () => {
-	const { searchValue } = useSearchContext();
-	const [recommendList, setRecommendList] = useState<IResponseItem[]>([]);
+export const useDebounce = (tempQuery: string) => {
+	const [completeQuery, setCompleteQuery] = useState('');
 
 	useEffect(() => {
-		!searchValue && setRecommendList([]);
+		const debounce = setTimeout(() => {
+			return setCompleteQuery(tempQuery);
+		}, 300);
+		return () => clearTimeout(debounce);
+	}, [tempQuery]);
+
+	return completeQuery;
+};
+```
+- input의 change이벤트를 그룹화 해 특정 시간이 지난 후 한번의 이벤트만 발생하도록 debounce 커스텀 훅을 만들었습니다.
+- 사용자가 텍스트를 입력하는 동안은 `setTimeout`함수가 매번 초기화므로 아무 일도 일어나지 않다가, 키에서 손을 떼고 300ms가 지나면 setCompleteQuery가 실행됩니다.
+- 여기서 리턴된 completeQuery가 api에 넣을 쿼리값이 되기 때문에 입력이 끝나기 전에는 api요청이 가지 않습니다.
+
+
+
+2. 캐싱 데이터 활용
+
+```js
+// 전역으로 응답 데이터를 활용하기 위한 커스텀 훅
+export const useRecommend = () => {
+	const [recommendList, setRecommendList] = useState<IResponseItem[]>([]);
+
+	return { recommendList, setRecommendList };
+};
+```
+
+```js
+// 추천검색어를 표시할 컴포넌트
+const RecommendList = () => {
+	const { searchValue } = useSearchContext();
+	const { recommendList, setRecommendList } = useRecommend();
+
+	useEffect(() => {
+		if (!searchValue) return setRecommendList([]);
 
 		const { data: cachedData } = getCachedData(searchValue);
 
@@ -72,7 +168,6 @@ export const useSearchRequest = () => {
 			if (searchValue.length < 1) return false;
 			try {
 				const res = await httpClient.get(searchValue);
-				console.log(res);
 				setRecommendList(res.data);
 				CachingData({ searchValue, recommendList: res.data });
 			} catch (err) {
@@ -84,15 +179,40 @@ export const useSearchRequest = () => {
 
 		cachedData ? setRecommendList(cachedData) : requestSearchResult();
 	}, [searchValue]);
-
-	return { recommendList, setRecommendList };
-};
+}
 ```
-- useSearchRequest 커스텀 훅에서 캐싱된 데이터를 확인하고, 없거나 삭제되었을 경우 api를 호출하기 떄문에 불필요한 api호출을 줄일 수 있습니다.
-(api가 두번 호출되는 문제가 있어 수정 예정입니다.)
-
-### 키보드로 추천검색어 이동
 ```js
+// 
+const SearchBox = () => {
+	const { focusIndex, setFocusIndex } = useFocusItemContext();
+	const { recommendList } = useRecommend();
+
+	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (!recommendList.length) return;
+
+		switch (e.key) {
+			case 'ArrowDown':
+				if (focusIndex === recommendList.length - 1) return setFocusIndex(0);
+				setFocusIndex((prev: number) => prev + 1);
+				break;
+        .
+        .
+        .
+			case 'Enter':
+				setFocusIndex(0);
+				setTempQuery(recommendList[focusIndex].sickNm);
+    }
+  }
+  return (...)
+  }
+```
+- 입력된 값으로 캐싱된 데이터를 확인하고, 없거나 삭제되었을 경우 api를 호출하기 떄문에 불필요한 api호출을 줄일 수 있습니다.
+- 키보드로 추천검색어 이동하는 기능을 위해 (input 요소가 있는) `SearchBox` 컴포넌트에서도 api응답값을 사용해야 하기 때문에 전역에서 사용할 수 있는 `useRecommend` 커스텀 훅을 통해 상태를 지정하고 불러옵니다.
+
+
+### 📌 키보드로 추천검색어 이동
+```js
+// SearchBox.tsx
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (!recommendList.length) return;
 
@@ -120,7 +240,10 @@ export const useSearchRequest = () => {
 		setFocusIndex(-1);
 	};
 ```
+
 ```js
+// RecommendList.tsx
+
   <RecommendContainer>
     <span className="list-info">추천 검색어</span>
     <div className="list">
@@ -135,3 +258,10 @@ export const useSearchRequest = () => {
 - 포커싱 된 검색어에서 enter 키를 누르면 input에 해당 검색어가 세팅됩니다.
 - index 0에서는 더이상 위쪽 방향키를 누르지 못하고, 가장 마지막 index에서 아래 방향키를 누를 경우 다시 0으로 돌아가도록 구현했습니다.
 
+---
+
+## 기타
+
+![type선언](image-1.png)
+
+- `vite-env.d.ts` 파일에서 타입을 선언해 전역에서 사용할 수 있도록 하고, import 코드로 컴포넌트 구현부를 확인하기 어려워지는 것을 방지합니다.
