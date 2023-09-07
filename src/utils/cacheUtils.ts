@@ -8,7 +8,6 @@ const parsingStorageItem = (searchValue: string) => {
 	return searchValue && JSON.parse(getStorageItem(searchValue) as string);
 };
 
-//recommendList가 없을 때도 캐싱해야 불필요한 요청 가지 않음
 export const CachingData = ({ searchValue, recommendList }: ICachingData) => {
 	const thirtyMinutes = 30 * 60 * 1000;
 	const expireAddedList = {
