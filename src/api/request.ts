@@ -4,7 +4,7 @@ const BASE_URL = 'https://chill-jasper-healer.glitch.me/sick';
 
 const axiosFetch = axios.create({
 	baseURL: BASE_URL,
-	timeout: 5000,
+	timeout: 20000,
 	withCredentials: true,
 });
 

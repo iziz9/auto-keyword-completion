@@ -2,17 +2,17 @@ import { styled } from 'styled-components';
 import RecommendItem from './RecommendItem';
 import { useSearchContext } from '../context/searchContext';
 import { useFocusItemContext } from '../context/focusItemContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { CachingData, getCachedData } from '../utils/cacheUtils';
 import { httpClient } from '../api/request';
 import { useRecommendContext } from '../context/recommendContext';
-
-const MAX_RESULTS = 8;
+import Loading from './Loading';
 
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
 	const { focusIndex } = useFocusItemContext();
 	const { recommendList, setRecommendList } = useRecommendContext();
+	const [loading, setLoading] = useState<boolean>(false);
 
 	useEffect(() => {
 		if (!searchValue) return setRecommendList([]);
@@ -21,6 +21,8 @@ const RecommendList = () => {
 
 		const requestSearchResult = async () => {
 			if (searchValue.length < 1) return false;
+			setRecommendList([]);
+			setLoading(true);
 			try {
 				const res = await httpClient.get(searchValue);
 				setRecommendList(res.data);
@@ -28,6 +30,7 @@ const RecommendList = () => {
 			} catch (err) {
 				alert(err);
 			} finally {
+				setLoading(false);
 				console.info('calling api');
 			}
 		};
@@ -42,7 +45,8 @@ const RecommendList = () => {
 					<span className="list-info">추천 검색어</span>
 					<div className="list">
 						{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
-						{recommendList.slice(0, MAX_RESULTS).map((item: IResponseItem, index: number) => (
+						{loading && <Loading />}
+						{recommendList.map((item: IResponseItem, index: number) => (
 							<RecommendItem key={item.sickCd} sickNm={item.sickNm} focus={focusIndex === index} />
 						))}
 					</div>

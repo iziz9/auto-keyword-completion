@@ -1,4 +1,5 @@
 const currentTime = Date.now();
+const EXPIRE_TIME = 30 * 60 * 1000;
 
 const getStorageItem = (searchValue: string) => {
 	return localStorage.getItem(searchValue);
@@ -9,10 +10,9 @@ const parsingStorageItem = (searchValue: string) => {
 };
 
 export const CachingData = ({ searchValue, recommendList }: ICachingData) => {
-	const thirtyMinutes = 30 * 60 * 1000;
 	const expireAddedList = {
 		data: recommendList,
-		expire: currentTime + thirtyMinutes,
+		expire: currentTime + EXPIRE_TIME,
 	};
 	const jsonData = JSON.stringify(expireAddedList);
 	localStorage.setItem(searchValue, jsonData);

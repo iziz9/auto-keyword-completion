@@ -7,7 +7,7 @@
 
 [✨ 배포 링크](https://auto-keyword-completion.netlify.app/)
 
-📍 서버를 사용하지 않는 동안 중지되어 있기 때문에 첫 api요청은 응답이 느릴 수 있습니다.  
+❗️json서버를 배포해 사용중입니다. 서버에 트래픽이 없을 경우 sleep상태로 변경되기 때문에 첫 요청 시 응답이 돌아오지 않을 수 있습니다. 요청에 실패했다는 alert이 뜰 경우 다시 시도해주세요.
 
 ## 설치 및 실행방법
 
@@ -36,6 +36,7 @@ $ npm run dev
 ├── api/
 │   └── request.ts
 ├── components/
+│   ├── Loading.tsx
 │   ├── RecommendItem.tsx
 │   ├── RecommendList.tsx
 │   └── SearchBox.tsx
@@ -107,10 +108,9 @@ function App() {
 // cacheUtils.ts
 
 export const CachingData = ({ searchValue, recommendList }: ICachingData) => {
-	const thirtyMinutes = 30 * 60 * 1000;
 	const expireAddedList = {
 		data: recommendList,
-		expire: currentTime + thirtyMinutes,
+		expire: currentTime + EXPIRE_TIME,
 	};
 	const jsonData = JSON.stringify(expireAddedList);
 	localStorage.setItem(searchValue, jsonData);
@@ -226,6 +226,8 @@ const RecommendList = () => {
 
 		const requestSearchResult = async () => {
 			if (searchValue.length < 1) return false;
+			setRecommendList([]);
+			setLoading(true);
 			try {
 				const res = await httpClient.get(searchValue);
 				setRecommendList(res.data);
@@ -233,6 +235,7 @@ const RecommendList = () => {
 			} catch (err) {
 				alert(err);
 			} finally {
+				setLoading(false);
 				console.info('calling api');
 			}
 		};
@@ -329,6 +332,8 @@ const SearchBox = () => {
 
 ## 기타
 
+1. 전역 타입 선언
+
 ```js
 // vite.env.d.ts
 
@@ -353,3 +358,57 @@ interface ICachingData {
 ```
 
 - `vite-env.d.ts` 파일에서 타입을 선언해 전역에서 사용할 수 있도록 하고, import 코드로 컴포넌트 구현부를 확인하기 어려워지는 것을 방지합니다.
+
+
+2. 로딩 애니메이션
+
+```js
+
+const RecommendList = () => {
+
+	useEffect(() => {
+		.
+		.
+		.
+		const requestSearchResult = async () => {
+			if (searchValue.length < 1) return false;
+			setRecommendList([]);
+			setLoading(true);
+			try {
+				const res = await httpClient.get(searchValue);
+				setRecommendList(res.data);
+				CachingData({ searchValue, recommendList: res.data });
+			} catch (err) {
+				alert(err);
+			} finally {
+				setLoading(false);
+				console.info('calling api');
+			}
+		};
+
+		cachedData ? setRecommendList(cachedData) : requestSearchResult();
+	}, [searchValue]);
+
+	return (
+		<>
+			{searchValue.length >= 1 && (
+				<RecommendContainer>
+					<span className="list-info">추천 검색어</span>
+					<div className="list">
+						{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
+						{loading && <Loading />}
+						{recommendList.map((item: IResponseItem, index: number) => (
+							<RecommendItem key={item.sickCd} sickNm={item.sickNm} focus={focusIndex === index} />
+						))}
+					</div>
+				</RecommendContainer>
+			)}
+		</>
+	);
+};
+```
+
+- 로컬스토리지에서 데이터를 가져올 때는 응답 대기시간이 체감되지 않으나, api를 호출할 경우 데이터 length에 따라 오래걸리는 경우가 있어 <br />
+api호출 시 loading state를 true로 설정하고, finally구문에서 false로 세팅해줍니다.
+- loading state가 true라면 로딩애니메이션을 표시합니다.
+
