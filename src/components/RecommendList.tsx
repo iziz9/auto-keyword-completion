@@ -7,6 +7,8 @@ import { CachingData, getCachedData } from '../utils/cacheUtils';
 import { httpClient } from '../api/request';
 import { useRecommendContext } from '../context/recommendContext';
 
+const MAX_RESULTS = 8;
+
 const RecommendList = () => {
 	const { searchValue } = useSearchContext();
 	const { focusIndex } = useFocusItemContext();
@@ -40,7 +42,7 @@ const RecommendList = () => {
 					<span className="list-info">추천 검색어</span>
 					<div className="list">
 						{recommendList && recommendList.length < 1 && <span>검색어 없음</span>}
-						{recommendList.map((item: IResponseItem, index: number) => (
+						{recommendList.slice(0, MAX_RESULTS).map((item: IResponseItem, index: number) => (
 							<RecommendItem key={item.sickCd} sickNm={item.sickNm} focus={focusIndex === index} />
 						))}
 					</div>
@@ -73,6 +75,21 @@ const RecommendContainer = styled.section`
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
+		overflow-y: scroll;
+
+		&::-webkit-scrollbar {
+			width: 14px;
+			padding: 20px;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			height: 10%;
+			background-color: rgb(107, 107, 107);
+			border-radius: 5px;
+		}
+		&::-webkit-scrollbar-track {
+			margin: 3px;
+		}
 	}
 `;
 

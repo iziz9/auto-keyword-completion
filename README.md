@@ -7,6 +7,8 @@
 
 [✨ 배포 링크](https://auto-keyword-completion.netlify.app/)
 
+📍 서버를 사용하지 않는 동안 중지되어 있기 때문에 첫 api요청은 응답이 느릴 수 있습니다.  
+
 ## 설치 및 실행방법
 
 ```js
@@ -19,7 +21,13 @@ $ npm install
 $ npm run dev
 ```
 
----
+## 기술스택
+
+![React](https://img.shields.io/badge/ReactJS-61DAFB?style=for-the-badge&logo=React&logoColor=white)
+![Typescript](https://img.shields.io/badge/Typescript-3178C6?style=for-the-badge&logo=Typescript&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=Axios&logoColor=white)
+![styledComponents](https://img.shields.io/badge/styledComponents-DB7093?style=for-the-badge&logo=styledComponents&logoColor=white)
+
 
 ## 프로젝트 구조
 
@@ -50,6 +58,12 @@ $ npm run dev
 ---
 
 ## 프로젝트 설명
+> 관심사 분리를 위한 모듈화를 중점으로 고민하고 수행한 프로젝트입니다. 
+- 입력한 검색어가 포함된 추천 검색어를 최대 8개까지 표시해줍니다.
+- 자음이나 모음만 입력했을 경우 
+- 검색창에서 키보드를 이용해 추천검색어 목록으로 포커스를 이동할 수 있습니다.
+- 포커싱 상태에서 `Enter` 키를 누르면 검색창에 해당 추천검색어가 채워집니다.
+- 포커싱 상태에서 `ESC` 키를 누르면 추천검색어 섹션이 닫힙니다.
 
 ### 📌 상태관리
 
@@ -147,8 +161,28 @@ export const useDebounce = (tempQuery: string) => {
 - 여기서 리턴된 completeQuery가 api에 넣을 쿼리값이 되기 때문에 입력이 끝나기 전에는 api요청이 가지 않습니다.
 
 
+2. input입력 값 유효성 검증
 
-2. 캐싱 데이터 활용
+```js
+export const checkInputValid = (completeQuery: string) => {
+	const trimedQuery = completeQuery.trim();
+	const consonantRegex = /^[ㄱ-ㅎ]+$/;
+	const vowelRegex = /^[ㅏ-ㅣ]+$/;
+	const numberRegex = /^[0-9]+$/;
+
+	const isInputConsonant = !consonantRegex.test(trimedQuery);
+	const isInputVowel = !vowelRegex.test(trimedQuery);
+	const isInputNumber = !numberRegex.test(trimedQuery);
+	const isValid = isInputConsonant && isInputVowel && isInputNumber;
+
+	return isValid;
+};
+```
+- 자음 또는 모음, 숫자만 입력할 경우 api 요청 전 return되어 아무 동작도 발생하지 않습니다.
+- 영문자를 입력할 경우 db의 `sickCd` 와 일치하는 값도 같이 들어오기 때문에 관련없는 검색어가 같이 추천되지만 질병명에 영문자가 포함된 경우가 있어 검증 기준에 넣지 않았습니다.
+
+
+3. 캐싱 데이터 활용
 
 ```js
 // 전역으로 응답 데이터를 활용하기 위한 context

@@ -5,16 +5,21 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useEffect, useState } from 'react';
 import { useFocusItemContext } from '../context/focusItemContext';
 import { useRecommendContext } from '../context/recommendContext';
+import { checkInputValid } from '../utils/InputValidation';
 
 const SearchBox = () => {
 	const { setSearchValueHandler } = useSearchContext();
 	const { focusIndex, setFocusIndex } = useFocusItemContext();
 	const [tempQuery, setTempQuery] = useState<string>('');
 	const completeQuery = useDebounce(tempQuery);
-	const { recommendList } = useRecommendContext();
+	const { recommendList, setRecommendList } = useRecommendContext();
 
 	useEffect(() => {
-		setSearchValueHandler(completeQuery);
+		if (completeQuery.length === 0) {
+			return setRecommendList([]);
+		}
+		const isValid = checkInputValid(completeQuery);
+		isValid && setSearchValueHandler(completeQuery);
 	}, [completeQuery]);
 
 	const keyDownHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -26,7 +31,7 @@ const SearchBox = () => {
 				setFocusIndex((prev: number) => prev + 1);
 				break;
 			case 'ArrowUp':
-				if (focusIndex === 0) return setFocusIndex(0);
+				if (focusIndex === 0) return false;
 				setFocusIndex((prev: number) => prev - 1);
 				break;
 			case 'Escape':
@@ -34,6 +39,7 @@ const SearchBox = () => {
 				setSearchValueHandler('');
 				break;
 			case 'Enter':
+				if (focusIndex === -1) return false;
 				setFocusIndex(0);
 				setTempQuery(recommendList[focusIndex].sickNm);
 		}
