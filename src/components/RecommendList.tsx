@@ -79,6 +79,7 @@ const RecommendContainer = styled.section`
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
+		max-height: 400px;
 		overflow-y: scroll;
 
 		&::-webkit-scrollbar {
