@@ -15,7 +15,7 @@ const SearchBox = () => {
 	const { recommendList, setRecommendList } = useRecommendContext();
 
 	useEffect(() => {
-		if (completeQuery.length === 0) {
+		if (completeQuery.length === 0 || completeQuery.trim() === '') {
 			return setRecommendList([]);
 		}
 		const isValid = checkInputValid(completeQuery);

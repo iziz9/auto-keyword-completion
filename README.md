@@ -48,7 +48,8 @@ $ npm run dev
 ├── hooks/
 │   └── useDebounce.tsx
 ├── utils/
-│   └── cacheUtils.ts
+│   ├── cacheUtils.ts
+│   └── inputValidation.ts
 ├── app.tsx
 ├── globalStyles.ts
 ├── main.tsx
@@ -164,21 +165,32 @@ export const useDebounce = (tempQuery: string) => {
 2. input입력 값 유효성 검증
 
 ```js
+//SearchBox.tsx
+	useEffect(() => {
+		if (completeQuery.length === 0 || completeQuery.trim() === '') {
+			return setRecommendList([]);
+		}
+		const isValid = checkInputValid(completeQuery);
+		isValid && setSearchValueHandler(completeQuery);
+	}, [completeQuery]);
+
+// InputValidation.ts
 export const checkInputValid = (completeQuery: string) => {
-	const trimedQuery = completeQuery.trim();
 	const consonantRegex = /^[ㄱ-ㅎ]+$/;
 	const vowelRegex = /^[ㅏ-ㅣ]+$/;
 	const numberRegex = /^[0-9]+$/;
 
-	const isInputConsonant = !consonantRegex.test(trimedQuery);
-	const isInputVowel = !vowelRegex.test(trimedQuery);
-	const isInputNumber = !numberRegex.test(trimedQuery);
+	const isInputConsonant = !consonantRegex.test(completeQuery);
+	const isInputVowel = !vowelRegex.test(completeQuery);
+	const isInputNumber = !numberRegex.test(completeQuery);
 	const isValid = isInputConsonant && isInputVowel && isInputNumber;
 
 	return isValid;
 };
+
+
 ```
-- 자음 또는 모음, 숫자만 입력할 경우 api 요청 전 return되어 아무 동작도 발생하지 않습니다.
+- 자음 또는 모음, 숫자, 공백만 입력할 경우 api 요청 전 return되어 아무 동작도 발생하지 않습니다.
 - 영문자를 입력할 경우 db의 `sickCd` 와 일치하는 값도 같이 들어오기 때문에 관련없는 검색어가 같이 추천되지만 질병명에 영문자가 포함된 경우가 있어 검증 기준에 넣지 않았습니다.
 
 
